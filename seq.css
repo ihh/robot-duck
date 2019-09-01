@@ -1,0 +1,18 @@
+body {
+    background-color: white;
+}
+
+.seq {
+    display: flex;
+    flex-direction: column;
+    width: 800px;
+}
+
+.anim {
+    height: 500px;
+    border-color: gray;
+    border-style: solid;
+    border-width: 1px;
+    margin-bottom: 4px;
+    position: relative;
+}
