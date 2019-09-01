@@ -25,17 +25,17 @@ var newInput = () => {
   }
 }
 
-var inputTape, alignTape, stateLabel, step
+var inputTape, outputTape, stateLabel, step
 var buildMachine = () => {
   anim.empty()
   anim.append ($('<div class="machine">')
-               .append (alignTape = $('<div class="align">'),
+               .append (outputTape = $('<div class="outseq">'),
                         inputTape = $('<div class="inseq">'),
                         $('<div class="inside">')
                         .append (stateLabel = $('<div class="state">'))))
   inputSeq.forEach ((inTok) => inputTape.append (makeInTok (inTok)))
   inputTape.append (makeInTok (''))
-  alignTape.prepend (makeColumn ('', ''))
+  outputTape.prepend (makeOutTok (''))
   setState (path.id)
   step = 0
   nextTrans()
@@ -50,18 +50,14 @@ var nextTrans = () => {
     setState (trans.id)
     if (trans.in)
       inputTape.children().first().remove()
-    if (trans.in || trans.out)
-      alignTape.append (makeColumn (trans.in || "-",
-                                    trans.out || "-"))
+    if (trans.out)
+      outputTape.append (makeOutTok (trans.out))
     timer = window.setTimeout (nextTrans, trans.in || trans.out ? loudDelay : silentDelay)
   }
 }
                      
-var makeColumn = (inTok, outTok) => $('<div class="col">')
-    .append ($('<div class="inrow">').text (inTok),
-             $('<div class="outrow">').text (outTok))
-
 var makeInTok = (inTok) => $('<span class="intok">').text (inTok)
+var makeOutTok = (outTok) => $('<span class="outtok">').text (outTok)
 
 var setState = (state) => {
   stateLabel.html (stateToHtml (state))
