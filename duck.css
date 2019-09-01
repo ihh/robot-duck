@@ -2,6 +2,28 @@ body {
     background: white;
 }
 
+.duck {
+    display: flex;
+    flex-direction: column;
+}
+
+.anim {
+    height: 400px;
+    border-color: gray;
+    border-style: solid;
+    border-width: 1px;
+    margin-bottom: 4px;
+    position: relative;
+}
+
+.machine {
+    
+}
+
+.input {
+    font-size: xx-small;
+}
+
 .duck a {
     font-size: small;
 }
