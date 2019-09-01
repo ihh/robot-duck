@@ -23,14 +23,12 @@ body {
     position: absolute;
     left: 340px;
     top: 200px;
-    box-shadow: 4px 4px 2px #502419;
 }
 
 .inside {
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: #a04232;
     border-color: black;
     border-style: solid;
     border-width: 1px;
@@ -38,21 +36,24 @@ body {
 
 .state {
     margin: 4px;
+    width: 112px;
+    height: 92px;
+}
+
+.state .active {
+    r: 10;
 }
 
 .outseq {
     position: absolute;
     right: 120px;
-    top: 20px;
+    bottom: 20px;
     padding-left: 8px;
     border-style: solid none solid solid;
     border-width: 1px;
     border-color: black;
     display: flex;
     flex-direction: row;
-
-    background-color: #c7cb85;
-    box-shadow: 2px 2px 1px #7ea172;
 }
 
 .inseq {
@@ -63,12 +64,8 @@ body {
     padding-left: 1px;
     border-style: solid;
     border-width: 1px;
-    border-color: black black black #502419;
     display: flex;
     flex-direction: row;
-
-    background-color: #ebbe9b;
-    box-shadow: 2px 2px 1px #502419;
 }
 
 .inseq, .outseq {
@@ -83,3 +80,51 @@ body {
 .duck a {
     font-size: small;
 }
+
+
+/* rust theme */
+.rust-theme .machine {
+    box-shadow: 4px 4px 2px #502419;
+}
+.rust-theme .inside {
+    background-color: #a04232;
+}
+.rust-theme .state {
+    fill: #ebbe9b;
+}
+.rust-theme .state .active {
+    fill: #502419;
+}
+.rust-theme .outseq {
+    background-color: #c7cb85;
+    box-shadow: 2px 2px 1px #7ea172;
+}
+.rust-theme .inseq {
+    background-color: #ebbe9b;
+    border-color: black black black #502419;
+    box-shadow: 2px 2px 1px #502419;
+}
+
+/* circus theme */
+.circus-theme .machine {
+    box-shadow: 4px 4px 2px #603140;
+}
+.circus-theme .inside {
+    background-color: #095256;
+}
+.circus-theme .state {
+    fill: #bb9f06;
+}
+.circus-theme .state .active {
+    fill: #603140;
+}
+.circus-theme .outseq {
+    background-color: #087f8c;
+    box-shadow: 2px 2px 1px #7ea172;
+}
+.circus-theme .inseq {
+    background-color: #bb9f06;
+    border-color: black black black #603140;
+    box-shadow: 2px 2px 1px #603140;
+}
+
