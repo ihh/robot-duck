@@ -5,10 +5,11 @@ body {
 .duck {
     display: flex;
     flex-direction: column;
+    width: 802px;
 }
 
 .anim {
-    height: 400px;
+    height: 500px;
     border-color: gray;
     border-style: solid;
     border-width: 1px;
@@ -17,7 +18,70 @@ body {
 }
 
 .machine {
-    
+    width: 120px;
+    height: 100px;
+    position: absolute;
+    left: 340px;
+    top: 200px;
+    box-shadow: 4px 4px 2px #502419;
+}
+
+.inside {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #a04232;
+}
+
+.state {
+    margin: 4px;
+}
+
+.align {
+    position: absolute;
+    right: 120px;
+    top: 20px;
+    border-style: solid none solid solid;
+    border-width: 1px;
+    border-color: black;
+    display: flex;
+    flex-direction: row;
+
+    background: #c7cb85;
+    box-shadow: 2px 2px 1px #7ea172;
+}
+
+.inseq {
+    position: absolute;
+    left: 120px;
+    top: 20px;
+    border-style: solid solid solid none;
+    border-width: 1px;
+    border-color: black;
+    display: flex;
+    flex-direction: row;
+
+    background: #ebbe9b;
+    box-shadow: 2px 2px 1px #502419;
+}
+
+.inseq, .align {
+    font-family: monospace;
+}
+
+.align {
+    padding-left: 8px;
+    height: 32px;
+}
+
+.inseq {
+    padding-right: 8px;
+    height: 16px;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
 }
 
 .input {
