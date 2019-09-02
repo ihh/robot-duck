@@ -1,20 +1,22 @@
 var rand = Math.random
 
 var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
-                  { name: 'delRate', value: .1, label: 'Deletion rate' },
+                  { name: 'delRate', value: .01, label: 'Deletion rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 10, label: 'Min sequence length' },
-                  { name: 'clockRate', value: 1, label: 'Events/site per sec' } ]
+                  { name: 'clockRate', value: 1, label: 'Events/site per sec' },
+                  { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
+                ]
 var params = {}
 paramList.forEach ((p) => { params[p.name] = p })
 
-var hueTag = 'residue-hue'
-var root
+var hueAttr = 'residue-hue', ancestorAttr = 'ancestor-id', simGenAttr = 'sim-generation'
+var root, anim, paramContainer
 window.onload = () => {
-  var anim, paramContainer
   var container = $('.seq')
   container.append (anim = $('<div class="anim">'))
+                    
   anim.append (root = newSim())
   container.append (paramContainer = $('<div class="params">'))
   paramList.forEach ((param) => {
@@ -37,17 +39,19 @@ window.onload = () => {
   evolveAll()
 }
 
-var newSim = () => assignId ($('<div class="sim">'))
+var newSim = (gen) => assignId ($('<div class="sim">').attr(simGenAttr,gen || 0))
 
 var forkAll = () => {
   activeSims().forEach ((s) => {
     var seq = $(s)
-    var newSim1 = newSim()
-    var newSim2 = newSim()
+    var gen = parseInt (seq.attr(simGenAttr) || 0)
+    var newSim1 = newSim (gen + 1)
+    var newSim2 = newSim (gen + 1)
     newSim1.insertBefore (seq)
     newSim2.insertAfter (seq)
     newSim1.append (cloneSeq (seq))
     newSim2.append (cloneSeq (seq))
+    setIndents()
     seq.addClass ('halted')
     evolve (newSim1)
     evolve (newSim2)
@@ -75,6 +79,12 @@ var evolveAll = () => {
 }
 
 var activeSims = () => $('.sim:not(.halted)').toArray()
+
+function setIndents() {
+  $('.sim').toArray().forEach ((s) => {
+    $(s).css ('padding-left', params.indent.value * parseInt ($(s).attr (simGenAttr)))
+  })
+}
 
 // http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
 /**
@@ -114,15 +124,15 @@ var nextId = 1
 var assignId = (e) => e.attr ('id', nextId++)
 var newResidue = () => assignId (setRandomColor ($('<div class="residue">')))
 var newResidues = (n) => new Array(n).fill(0).map (newResidue)
-var setRandomColor = (div) => {
+var setRandomColor = (div, hueRange) => {
   var hue
-  if (div.attr(hueTag)) {
-    hue = parseFloat (div.attr(hueTag)) + 1 + (rand() - 0.5) * hueRange
+  if (div.attr(hueAttr)) {
+    hue = parseFloat (div.attr(hueAttr)) + 1 + (rand() - 0.5) * hueRange
     while (hue > 1)
       hue -= 1
   } else
       hue = rand()
-  div.attr (hueTag, hue)
+  div.attr (hueAttr, hue)
   return div.css('background-color','#'+rgbToHex(hsvToRgb(hue,1,1)))
 }
 
@@ -133,7 +143,7 @@ var geomLen = (pExtend) => {
   return len
 }
 
-var getResidues = (seq) => seq.children().not('.deleting')
+var getResidues = (seq) => seq.children('.residue').not('.deleting')
 
 var timer = {}
 var setTimer = (id, func, delay) => {
@@ -206,27 +216,29 @@ var doInsert = (seq, pos, len) => {
     toInsertArray.forEach ((res) => before.after ($(res)))
   } else
     seq.prepend (toInsertArray)
-  const initWidth = toInsertArray.map ((td) => $(td).width())
-  const initHeight = toInsertArray.map ((td) => $(td).height())
+  const initWidth = toInsertArray.map ((ti) => $(ti).width())
+  const initHeight = toInsertArray.map ((ti) => $(ti).height())
   let frame = 0, nextInsertFrame = () => {
     ++frame
-    if (frame < deleteFrames) {
-      var scale = (frame + 1) / deleteFrames
+    if (frame < insertFrames) {
+      var scale = (frame + 1) / insertFrames
       var w, h
-      toInsertArray.forEach ((td, n) => {
-        var tdj = $(td)
-        if (!tdj.hasClass ('deleting')) {
-          tdj.width (w = scale * initWidth[n])
-          tdj.height (h = scale * initHeight[n])
-          tdj.css ('margin-top', (resHeight - h) / 2)
-        }
+      toInsertArray.forEach ((ti, n) => {
+        var tij = $(ti)
+        if (!tij.hasClass ('deleting'))
+          tij.css ({ width: w = scale * initWidth[n],
+                     height: h = scale * initHeight[n],
+                     'margin-top': (resHeight - h) / 2 })
       })
+      window.setTimeout (nextInsertFrame,
+                         insertDelay / insertFrames)
     } else
-      toInsert.removeClass ('inserting')
-    window.setTimeout (nextInsertFrame,
-                       insertDelay / insertFrames)
+      toInsertArray.forEach ((ti) => $(ti).removeClass ('inserting')
+                             .css ({ width: '',
+                                     height: '',
+                                     'margin-top': '' }))
   }
-  toInsert.addClass ('inserting')
+  toInsertArray.forEach ((ti) => $(ti).addClass ('inserting'))
   nextInsertFrame()
 }
 
@@ -241,11 +253,10 @@ var doDelete = (seq, pos, len) => {
     if (frame < deleteFrames) {
       var scale = 1 - frame / deleteFrames
       var w, h
-      toDeleteArray.forEach ((td, n) => {
-        $(td).width (w = scale * initWidth[n])
-        $(td).height (h = scale * initHeight[n])
-        $(td).css ('margin-top', (resHeight - h) / 2)
-      })
+      toDeleteArray.forEach ((td, n) =>
+                             $(td).css ({ width: w = scale * initWidth[n],
+                                          height: h = scale * initHeight[n],
+                                          'margin-top': (resHeight - h) / 2 }))
       window.setTimeout (nextDeleteFrame,
                          deleteDelay / deleteFrames)
     } else
@@ -254,7 +265,36 @@ var doDelete = (seq, pos, len) => {
   nextDeleteFrame()
 }
 
-var hueRange = .1
+var hueRange = .05
 var doSub = (seq, pos) => {
-  setRandomColor (getResidues(seq).eq (pos))
+  var res = getResidues(seq).eq (pos)
+  res.removeClass ('mutating')
+  setRandomColor (res, hueRange)
+  window.setTimeout (() => res.addClass('mutating'), 0)
 }
+
+var drawAlignments = () => {
+  var div = $('<div class="alignment">')
+  var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  svg.setAttribute("width", anim.width())
+  svg.setAttribute("height", anim.height())
+  anim.children('.alignment').remove()
+  anim.prepend (div)
+  div.append (svg)
+  $('.residue:not(.deleting)').toArray().forEach ((r) => {
+    res = $(r)
+    var ancId = res.attr (ancestorAttr)
+    if (ancId) {
+      var anc = $('#' + ancId)
+      var pos = res.position(), ancPos = anc.position()
+
+      var newLine = document.createElementNS('http://www.w3.org/2000/svg','line')
+      newLine.setAttribute ('x1', ancPos.left + anc.width() / 2)
+      newLine.setAttribute ('y1', ancPos.top + anc.height() / 2)
+      newLine.setAttribute ('x2', pos.left + res.width() / 2)
+      newLine.setAttribute ('y2', pos.top + res.height() / 2)
+      svg.appendChild(newLine)
+    }
+  })
+}
+window.setInterval (drawAlignments, 1)
