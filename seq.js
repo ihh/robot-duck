@@ -15,9 +15,7 @@ window.onload = () => {
   var anim, paramContainer
   var container = $('.seq')
   container.append (anim = $('<div class="anim">'))
-  var row = addRow (anim)
-  var col = addColumn (row)
-  root = addSim (col, row)
+  anim.append (root = newSim())
   container.append (paramContainer = $('<div class="params">'))
   paramList.forEach ((param) => {
     paramContainer.append ($('<div class="param">')
@@ -39,30 +37,15 @@ window.onload = () => {
   evolveAll()
 }
 
-var addRow = (parent) => {
-  var row = $('<div class="row">')
-  parent.append (row)
-  return row
-}
-
-var addColumn = (parent) => {
-  var col = $('<div class="column">')
-  parent.append (col)
-  return col
-}
-
-var addSim = (col) => {
-  var sim
-  col.append (sim = assignId ($('<div class="sim">')))
-  return sim
-}
+var newSim = () => assignId ($('<div class="sim">'))
 
 var forkAll = () => {
-  var newParentCol = addColumn ($('.row'))
   activeSims().forEach ((s) => {
     var seq = $(s)
-    var newSim1 = addSim (newParentCol)
-    var newSim2 = addSim (newParentCol)
+    var newSim1 = newSim()
+    var newSim2 = newSim()
+    newSim1.insertBefore (seq)
+    newSim2.insertAfter (seq)
     newSim1.append (cloneSeq (seq))
     newSim2.append (cloneSeq (seq))
     seq.addClass ('halted')
@@ -153,6 +136,14 @@ var geomLen = (pExtend) => {
 var getResidues = (seq) => seq.children().not('.deleting')
 
 var timer = {}
+var setTimer = (id, func, delay) => {
+  if (timer[id]) {
+    window.clearTimeout (timer[id])
+    timer[id] = null
+  }
+  timer[id] = window.setTimeout (func, delay)
+}
+
 var evolve = (seq) => {
   if (!seq.hasClass ('halted')) {
     var id = seq.attr('id')
@@ -176,30 +167,28 @@ var evolve = (seq) => {
         millisecs = 0  // skip boring empty sequence
         totalDelRate = totalSubRate = 0
       }
-      if (timer[id]) {
-        window.clearTimeout (timer[id])
-        timer[id] = null
-      }
-      timer[id] = window.setTimeout (() => {
-        var r = rand() * totalRate()
-        if ((r -= totalInsRate) < 0) {
-          // insertion
-          var pos = Math.floor (rand() * (seqLen + 1))
-          var len = geomLen (insExtend)
-          doInsert (seq, pos, len)
-        } else if ((r -= totalDelRate) < 0) {
-          // deletion
-          var pos = Math.floor (rand() * seqLen)
-          var len = geomLen (delExtend)
-          if (seqLen - len >= minLen)
-            doDelete (seq, pos, len)
-        } else {
-          // substitution
-          var pos = Math.floor (rand() * seqLen)
-          doSub (seq, pos)
-        }
-        evolve (seq)
-      }, millisecs)
+      setTimer
+      (id,
+       () => {
+         var r = rand() * totalRate()
+         if ((r -= totalInsRate) < 0) {
+           // insertion
+           var pos = Math.floor (rand() * (seqLen + 1))
+           var len = geomLen (insExtend)
+           doInsert (seq, pos, len)
+         } else if ((r -= totalDelRate) < 0) {
+           // deletion
+           var pos = Math.floor (rand() * seqLen)
+           var len = geomLen (delExtend)
+           if (seqLen - len >= minLen)
+             doDelete (seq, pos, len)
+         } else {
+           // substitution
+           var pos = Math.floor (rand() * seqLen)
+           doSub (seq, pos)
+         }
+         evolve (seq)
+       }, millisecs)
     }
   }
 }
@@ -265,7 +254,7 @@ var doDelete = (seq, pos, len) => {
   nextDeleteFrame()
 }
 
-var hueRange = .4
+var hueRange = .1
 var doSub = (seq, pos) => {
   setRandomColor (getResidues(seq).eq (pos))
 }
