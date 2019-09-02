@@ -5,7 +5,7 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 10, label: 'Min sequence length' },
-                  { name: 'clockRate', value: 1, label: 'Events/sec' } ]
+                  { name: 'clockRate', value: 1, label: 'Events/site per sec' } ]
 var params = {}
 paramList.forEach ((p) => { params[p.name] = p })
 
@@ -144,16 +144,43 @@ var evolve = () => {
   }
 }
 
+// indel animations
+var resWidth = 20, resHeight = 20
+var insertDelay = 500, insertFrames = 10
+var deleteDelay = 500, deleteFrames = 10
+
 var doInsert = (pos, len) => {
+  var toInsertArray = newResidues (len)
+  var toInsert = $(toInsertArray)
   if (pos) {
     var before = getResidues().eq (pos - 1)
-    for (var n = 0; n < len; ++n)
-      before.after (newResidue())
+    toInsertArray.forEach ((res) => before.after ($(res)))
   } else
-    $('.sim').prepend (newResidues(len))
+    $('.sim').prepend (toInsertArray)
+  const initWidth = toInsertArray.map ((td) => $(td).width())
+  const initHeight = toInsertArray.map ((td) => $(td).height())
+  let frame = 0, nextInsertFrame = () => {
+    ++frame
+    if (frame < deleteFrames) {
+      var scale = (frame + 1) / deleteFrames
+      var w, h
+      toInsertArray.forEach ((td, n) => {
+        var tdj = $(td)
+        if (!tdj.hasClass ('deleting')) {
+          tdj.width (w = scale * initWidth[n])
+          tdj.height (h = scale * initHeight[n])
+          tdj.css ('margin-top', (resHeight - h) / 2)
+        }
+      })
+    } else
+      toInsert.removeClass ('inserting')
+    window.setTimeout (nextInsertFrame,
+                       insertDelay / insertFrames)
+  }
+  toInsert.addClass ('inserting')
+  nextInsertFrame()
 }
 
-var deleteDelay = 500, deleteFrames = 10
 var doDelete = (pos, len) => {
   var toDelete = getResidues().slice (pos, pos + len)
   var toDeleteArray = toDelete.toArray()
@@ -164,10 +191,11 @@ var doDelete = (pos, len) => {
     ++frame
     if (frame < deleteFrames) {
       var scale = 1 - frame / deleteFrames
+      var w, h
       toDeleteArray.forEach ((td, n) => {
-        $(td).width (scale * initWidth[n])
-        $(td).height (scale * initHeight[n])
-        $(td).css ('margin-top', initHeight[n] * (1 - scale) / 2)
+        $(td).width (w = scale * initWidth[n])
+        $(td).height (h = scale * initHeight[n])
+        $(td).css ('margin-top', (resHeight - h) / 2)
       })
       window.setTimeout (nextDeleteFrame,
                          deleteDelay / deleteFrames)
