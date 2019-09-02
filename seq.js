@@ -153,12 +153,28 @@ var doInsert = (pos, len) => {
     $('.sim').prepend (newResidues(len))
 }
 
-var deleteDelay = 500
+var deleteDelay = 500, deleteFrames = 10
 var doDelete = (pos, len) => {
   var toDelete = getResidues().slice (pos, pos + len)
-  toDelete.addClass('deleting')
-  window.setTimeout (() => toDelete.remove(),
-                     deleteDelay)
+  var toDeleteArray = toDelete.toArray()
+  toDelete.addClass ('deleting')
+  const initWidth = toDeleteArray.map ((td) => $(td).width())
+  const initHeight = toDeleteArray.map ((td) => $(td).height())
+  let frame = 0, nextDeleteFrame = () => {
+    ++frame
+    if (frame < deleteFrames) {
+      var scale = 1 - frame / deleteFrames
+      toDeleteArray.forEach ((td, n) => {
+        $(td).width (scale * initWidth[n])
+        $(td).height (scale * initHeight[n])
+        $(td).css ('margin-top', initHeight[n] * (1 - scale) / 2)
+      })
+      window.setTimeout (nextDeleteFrame,
+                         deleteDelay / deleteFrames)
+    } else
+      toDelete.remove()
+  }
+  nextDeleteFrame()
 }
 
 var hueRange = .4

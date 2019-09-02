@@ -41,26 +41,12 @@ body {
     animation: growAppear .5s;
 }
 
-.residue.deleting {
-    animation: shrinkDisappear .5s;
-    transform: scale(0);
-}
-
 @keyframes growAppear {
   from {
     transform: scale(0);
   }
   to {
     transform: scale(1);
-  }
-}
-
-@keyframes shrinkDisappear {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(0);
   }
 }
 
