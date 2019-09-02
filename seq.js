@@ -1,14 +1,17 @@
 var rand = Math.random
 
-var paramList = [ { name: 'insRate', value: .1, label: 'Insertion rate' },
+var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'delRate', value: .1, label: 'Deletion rate' },
-                  { name: 'gapLen', value: 4, label: 'Mean gap length' },
-                  { name: 'subRate', value: 1, label: 'Substitution rate' } ]
+                  { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
+                  { name: 'delLen', value: 4, label: 'Mean deletion length' },
+                  { name: 'minLen', value: 10, label: 'Min sequence length' },
+                  { name: 'clockRate', value: 1, label: 'Events/sec' } ]
 var params = {}
 paramList.forEach ((p) => { params[p.name] = p })
 
 var container, anim
 var initLen = 10
+var hueTag = 'residue-hue'
 window.onload = () => {
   var paramContainer
   container = $('.seq')
@@ -70,66 +73,95 @@ var rgbToHex = (rgb) => rgb.reduce ((hex, n) => hex + (n < 16 ? '0' : '') + n.to
 
 var newResidue = () => setRandomColor ($('<div class="residue">'))
 var newResidues = (n) => new Array(n).fill(0).map (newResidue)
-var setRandomColor = (div) => div.css('background-color','#'+rgbToHex(hsvToRgb(rand(),1,1)))
+var setRandomColor = (div) => {
+  var hue
+  if (div.attr(hueTag)) {
+    hue = parseFloat (div.attr(hueTag)) + 1 + (rand() - 0.5) * hueRange
+    while (hue > 1)
+      hue -= 1
+  } else
+      hue = rand()
+  div.attr (hueTag, hue)
+  return div.css('background-color','#'+rgbToHex(hsvToRgb(hue,1,1)))
+}
 
-var gapLen = () => {
-  var p = 1 / params.gapLen.value, len = 1
-  while (rand() < p)
+var geomLen = (pExtend) => {
+  var len = 1
+  while (rand() < pExtend)
     ++len
   return len
 }
 
+var getResidues = () => $('.sim').children().not('.deleting')
+
 var timer
 var evolve = () => {
 
-  var seq = $('.sim'), residues = seq.children()
+  var seq = $('.sim'), residues = getResidues()
   var seqLen = residues.length
-  var insRate = params.insRate.value
-  var delRate = params.delRate.value
-  var subRate = params.subRate.value
+  var minLen = params.minLen.value || 0
+  var subRate = params.subRate.value || 0
+  var delRate = params.delRate.value || 0
+  var insDelRatio = 1- 1 / (1 + params.eqmLen.value)  // insDelRatio = P(extend eqm sequence by one res)
+  var clockRate = params.clockRate.value
+  var delExtend = 1 - 1 / params.delLen.value  // At any given site, rate(k-deletion) = delRate * delExtend^{k-1} * (1-delExtend)   for k >= 1
+  var insExtend = delExtend * insDelRatio  // rate(k-insertion) = rate(k-deletion) * insDelRatio^k
+  var insRate = delRate * insDelRatio * (1 - delExtend) / (1 - insExtend)  // rate(k-insertion) = insRate * insExtend^{k-1} * (1-insExtend)
   var totalInsRate = (seqLen + 1) * insRate
   var totalDelRate = seqLen * delRate
   var totalSubRate = seqLen * subRate
-  var totalRate = totalInsRate + totalDelRate + totalSubRate
-  var millisecs = -1000 * Math.log(rand()) / totalRate
-  if (timer) {
-    window.clearTimeout (timer)
-    timer = null
-  }
-  timer = window.setTimeout (() => {
-    var r = rand() * totalRate
-    if ((r -= totalInsRate) < 0) {
-      // insertion
-      var pos = Math.floor (rand() * (seqLen + 1))
-      var len = gapLen()
-      doInsert (pos, len)
-    } else if ((r -= totalDelRate) < 0) {
-      // deletion
-      var pos = Math.floor (rand() * seqLen)
-      var len = gapLen()
-      doDelete (pos, len)
-    } else {
-      // substitution
-      var pos = Math.floor (rand() * seqLen)
-      doSub (pos)
+  var totalRate = () => totalInsRate + totalDelRate + totalSubRate
+  if (clockRate > 0) {
+    var millisecs = -1000 * Math.log(rand()) / (totalRate() * clockRate)
+    if (seqLen < minLen) {
+      millisecs = 0  // skip boring empty sequence
+      totalDelRate = totalSubRate = 0
     }
-    evolve()
-  }, millisecs)
+    if (timer) {
+      window.clearTimeout (timer)
+      timer = null
+    }
+    timer = window.setTimeout (() => {
+      var r = rand() * totalRate()
+      if ((r -= totalInsRate) < 0) {
+        // insertion
+        var pos = Math.floor (rand() * (seqLen + 1))
+        var len = geomLen (insExtend)
+        doInsert (pos, len)
+      } else if ((r -= totalDelRate) < 0) {
+        // deletion
+        var pos = Math.floor (rand() * seqLen)
+        var len = geomLen (delExtend)
+        if (seqLen - len >= minLen)
+          doDelete (pos, len)
+      } else {
+        // substitution
+        var pos = Math.floor (rand() * seqLen)
+        doSub (pos)
+      }
+      evolve()
+    }, millisecs)
+  }
 }
 
 var doInsert = (pos, len) => {
   if (pos) {
-    var before = $('.sim').children().eq (pos - 1)
+    var before = getResidues().eq (pos - 1)
     for (var n = 0; n < len; ++n)
       before.after (newResidue())
   } else
     $('.sim').prepend (newResidues(len))
 }
 
+var deleteDelay = 500
 var doDelete = (pos, len) => {
-  $('.sim').children().slice (pos, pos + len).remove()
+  var toDelete = getResidues().slice (pos, pos + len)
+  toDelete.addClass('deleting')
+  window.setTimeout (() => toDelete.remove(),
+                     deleteDelay)
 }
 
+var hueRange = .4
 var doSub = (pos) => {
-  setRandomColor ($('.sim').children().eq (pos))
+  setRandomColor (getResidues().eq (pos))
 }
