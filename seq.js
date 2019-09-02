@@ -32,7 +32,10 @@ window.onload = () => {
     param.input.keyup (updateValue)
     param.input.click (updateValue)
   })
-  paramContainer.append ($('<button>').text ('Fork').click (forkAll))
+  paramContainer.append ($('<div>')
+                         .append ($('<button>')
+                                  .text ('Fork')
+                                  .click (forkAll)))
   evolveAll()
 }
 
@@ -48,34 +51,24 @@ var addColumn = (parent) => {
   return col
 }
 
-var addSim = (col, row) => {
+var addSim = (col) => {
   var sim
   col.append (sim = assignId ($('<div class="sim">')))
-  row.attr ('id', 'parent-' + sim.attr('id'))
   return sim
 }
 
-var getSimRow = (seq) => $('#parent-' + seq.attr('id'))
-
-var forkAll = () => activeSims().forEach ((sim) => fork ($(sim)))
-
-var fork = (seq) => {
-  var parentRow = getSimRow (seq)
-  var newParentCol = addColumn (parentRow)
-  var newRow1 = addRow (newParentCol)
-  var newRow2 = addRow (newParentCol)
-  var newCol1 = addColumn (newRow1)
-  var newCol2 = addColumn (newRow2)
-  var newSim1 = addSim (newCol1, newRow1)
-  var newSim2 = addSim (newCol2, newRow2)
-  
-  newSim1.append (cloneSeq (seq))
-  newSim2.append (cloneSeq (seq))
-  
-  seq.addClass ('halted')
-
-  evolve (newSim1)
-  evolve (newSim2)
+var forkAll = () => {
+  var newParentCol = addColumn ($('.row'))
+  activeSims().forEach ((s) => {
+    var seq = $(s)
+    var newSim1 = addSim (newParentCol)
+    var newSim2 = addSim (newParentCol)
+    newSim1.append (cloneSeq (seq))
+    newSim2.append (cloneSeq (seq))
+    seq.addClass ('halted')
+    evolve (newSim1)
+    evolve (newSim2)
+  })
 }
 
 var cloneSeq = (seq) => {
