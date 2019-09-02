@@ -18,7 +18,21 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-evenly;
+}
+
+.row {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.column {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .sim {
@@ -38,16 +52,6 @@ body {
     border-width: 1px;
     border-color: rgba(0,0,0,.25);
 
-/*    animation: growAppear .5s;*/
-}
-
-@keyframes growAppear {
-  from {
-    transform: scale(0);
-  }
-  to {
-    transform: scale(1);
-  }
 }
 
 .params {
