@@ -5,7 +5,7 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 10, label: 'Min sequence length' },
-                  { name: 'hueRange', value: .1, label: 'Hue change/sub' },
+                  { name: 'hueRange', value: .05, label: 'Hue change/sub' },
                   { name: 'clockRate', value: 1, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
                 ]
@@ -192,7 +192,7 @@ var evolve = (seq) => {
            // deletion
            var pos = Math.floor (rand() * seqLen)
            var len = geomLen (delExtend)
-           if (seqLen - len >= minLen)
+           if (minLen <= 0 || seqLen - len >= minLen)
              doDelete (seq, pos, len)
          } else {
            // substitution
