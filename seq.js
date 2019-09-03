@@ -60,14 +60,14 @@ var forkAll = () => {
 
 var cloneSeq = (seq) => {
   var cloned = getResidues (seq)
-      .removeClass ('inserting deleting')
+      .clone()
+      .removeClass ('inserting')
       .css ({ width: '',
               height: '',
               'margin-top': '' })
-      .clone()
   cloned.toArray().forEach ((elt) => {
     var e = $(elt)
-    e.attr ('ancestor-id', e.attr ('id'))
+    e.attr (ancestorAttr, e.attr ('id'))
     assignId (e)
     return e
   })
@@ -78,6 +78,7 @@ var evolveAll = () => {
   activeSims().forEach ((elt) => evolve ($(elt)))
 }
 
+var allSims = () => $('.sim').toArray()
 var activeSims = () => $('.sim:not(.halted)').toArray()
 
 function setIndents() {
@@ -281,19 +282,46 @@ var drawAlignments = () => {
   anim.children('.alignment').remove()
   anim.prepend (div)
   div.append (svg)
-  $('.residue:not(.deleting)').toArray().forEach ((r) => {
-    res = $(r)
-    var ancId = res.attr (ancestorAttr)
-    if (ancId) {
-      var anc = $('#' + ancId)
-      var pos = res.position(), ancPos = anc.position()
+  allSims().forEach ((sim) => {
+    var residues = getResidues ($(sim))
+    for (var r = 0; r < residues.length; ++r) {
+      var res = $(residues[r])
+      var ancId = res.attr (ancestorAttr)
+      if (ancId) {
+        var anc = $('#' + ancId)
+        if (!anc.length)
+          console.error (ancId)
+        var pos = res.position(), ancPos = anc.position()
 
-      var newLine = document.createElementNS('http://www.w3.org/2000/svg','line')
-      newLine.setAttribute ('x1', ancPos.left + anc.width() / 2)
-      newLine.setAttribute ('y1', ancPos.top + anc.height() / 2)
-      newLine.setAttribute ('x2', pos.left + res.width() / 2)
-      newLine.setAttribute ('y2', pos.top + res.height() / 2)
-      svg.appendChild(newLine)
+        var l1 = ancPos.left, y1 = ancPos.top
+        var l2 = pos.left, y2 = pos.top
+
+        if (y1 < y2) {
+          y1 += anc.height() + 3
+          y2 -= 2
+        } else {
+          y2 += res.height() + 3
+          y1 -= 2
+        }
+
+        var r1 = l1 + anc.width()
+        var r2 = l2 + res.width()
+        var ancSib = anc
+        while (r < residues.length) {
+          var sib = $(residues[r+1])
+          ancSib = ancSib.next()
+          if (ancSib.length && ancSib.attr('id') && ancSib.attr('id') === sib.attr(ancestorAttr)) {
+            r1 = ancSib.position().left + ancSib.width()
+            r2 = sib.position().left + sib.width()
+            ++r
+          } else
+            break
+        }
+        
+        var newPoly = document.createElementNS('http://www.w3.org/2000/svg','polygon')
+        newPoly.setAttribute ('points', [[l1,y1], [r1,y1], [r2,y2], [l2,y2]].map((xy)=>xy[0]+','+xy[1]).join(' '))
+        svg.appendChild(newPoly)
+      }
     }
   })
 }
