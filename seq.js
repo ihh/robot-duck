@@ -5,6 +5,7 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 10, label: 'Min sequence length' },
+                  { name: 'hueRange', value: .1, label: 'Hue change/sub' },
                   { name: 'clockRate', value: 1, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
                 ]
@@ -266,11 +267,10 @@ var doDelete = (seq, pos, len) => {
   nextDeleteFrame()
 }
 
-var hueRange = .05
 var doSub = (seq, pos) => {
   var res = getResidues(seq).eq (pos)
   res.removeClass ('mutating')
-  setRandomColor (res, hueRange)
+  setRandomColor (res, params.hueRange.value)
   window.setTimeout (() => res.addClass('mutating'), 0)
 }
 
