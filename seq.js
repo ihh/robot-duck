@@ -34,28 +34,29 @@ window.onload = () => {
     param.input.click (updateValue)
   })
   paramContainer.append ($('<div>')
-                         .append ($('<button>')
-                                  .text ('Fork')
-                                  .click (forkAll)))
+                         .append ($('<button>').text('Chain').click(()=>fork(false)),
+                                  $('<button>').text('Fork').click(()=>fork(true))))
   evolveAll()
 }
 
 var newSim = (gen) => assignId ($('<div class="sim">').attr(simGenAttr,gen || 0))
 
-var forkAll = () => {
+var fork = (twice) => {
   activeSims().forEach ((s) => {
     var seq = $(s)
     var gen = parseInt (seq.attr(simGenAttr) || 0)
-    var newSim1 = newSim (gen + 1)
+    if (twice) {
+      var newSim1 = newSim (gen + 1)
+      newSim1.insertBefore (seq)
+      newSim1.append (cloneSeq (seq))
+      evolve (newSim1)
+    }
     var newSim2 = newSim (gen + 1)
-    newSim1.insertBefore (seq)
     newSim2.insertAfter (seq)
-    newSim1.append (cloneSeq (seq))
     newSim2.append (cloneSeq (seq))
+    evolve (newSim2)
     setIndents()
     seq.addClass ('halted')
-    evolve (newSim1)
-    evolve (newSim2)
   })
 }
 
