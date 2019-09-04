@@ -1,0 +1,8 @@
+{"state": [
+  {"id":"S","trans":[{"in":"0","out":"0","to":0,"weight":{"-":[true,"e"]}},
+                     {"in":"0","out":"1","to":0,"weight":"e"},
+                     {"in":"1","out":"1","to":0,"weight":{"-":[true,"e"]}},
+                     {"in":"1","out":"0","to":0,"weight":"e"}]}
+],
+ "defs": { "e": 0.8 }
+}

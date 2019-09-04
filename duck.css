@@ -68,9 +68,31 @@ body {
     flex-direction: row;
 }
 
-.inseq, .outseq {
+.inseq, .outseq, .alignment {
     font-family: monospace;
+}
+
+.inseq, .outseq {
     height: 16px;
+}
+
+.alignment {
+    position: absolute;
+    bottom: 100;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.column .intok,
+.column .outtok {
+    font-size: large;
 }
 
 .input {
@@ -95,11 +117,13 @@ body {
 .rust-theme .state .active {
     fill: #502419;
 }
-.rust-theme .outseq {
+.rust-theme .outseq,
+.rust-theme .alignment .outtok {
     background-color: #c7cb85;
     box-shadow: 2px 2px 1px #7ea172;
 }
-.rust-theme .inseq {
+.rust-theme .inseq,
+.rust-theme .alignment .intok {
     background-color: #ebbe9b;
     border-color: black black black #502419;
     box-shadow: 2px 2px 1px #502419;

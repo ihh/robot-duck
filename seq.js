@@ -5,6 +5,7 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 10, label: 'Min sequence length' },
+                  { name: 'maxLen', value: 20, label: 'Max sequence length' },
                   { name: 'hueRange', value: .05, label: 'Hue change/sub' },
                   { name: 'clockRate', value: 1, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
@@ -163,6 +164,7 @@ var evolve = (seq) => {
     var residues = getResidues (seq)
     var seqLen = residues.length
     var minLen = params.minLen.value || 0
+    var maxLen = params.maxLen.value || 0
     var subRate = params.subRate.value || 0
     var delRate = params.delRate.value || 0
     var insDelRatio = 1- 1 / (1 + params.eqmLen.value)  // insDelRatio = P(extend eqm sequence by one res)
@@ -179,6 +181,8 @@ var evolve = (seq) => {
       if (seqLen < minLen) {
         millisecs = 0  // skip boring empty sequence
         totalDelRate = totalSubRate = 0
+      } else if (seqLen > maxLen) {
+        totalInsRate = totalSubRate = 0
       }
       setTimer
       (id,
@@ -188,7 +192,8 @@ var evolve = (seq) => {
            // insertion
            var pos = Math.floor (rand() * (seqLen + 1))
            var len = geomLen (insExtend)
-           doInsert (seq, pos, len)
+           if (maxLen <= 0 || seqLen + len <= maxLen)
+             doInsert (seq, pos, len)
          } else if ((r -= totalDelRate) < 0) {
            // deletion
            var pos = Math.floor (rand() * seqLen)
