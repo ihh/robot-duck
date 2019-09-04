@@ -12,7 +12,9 @@ window.onload = () => {
                .attr ('rows', 10)
                .attr ('placeholder', 'Paste machine JSON here'),
                $('<div>')
-               .append ($('<button>').text('Start').click (newInput),
+               .append ($('<button>').text('Reset').click (newInput),
+                        $('<button>').text('Start').click (nextTrans),
+                        $('<button>').text('Stop').click (stopTimer),
                         $('<select>')
                         .append (examples.map ((x) => $('<option>').attr('value',x.name).text(x.name)))
                         .change ((event) => selectExample (event.target.value)),
@@ -55,13 +57,17 @@ var buildMachine = () => {
   makeMachineSvg (machine)
   setState (path.start)
   step = 0
-  nextTrans()
+  stopTimer()
 }
 
 var timer, silentDelay = 100, loudDelay = 200
-var nextTrans = () => {
+var stopTimer = () => {
   if (timer)
     window.clearTimeout (timer)
+  timer = null
+}
+var nextTrans = () => {
+  stopTimer()
   if (step < path.trans.length) {
     var trans = path.trans[step++]
     setState (trans.to)
@@ -87,7 +93,8 @@ var makeInTok = (inTok) => $('<span class="intok">').text (inTok || '')
 var makeOutTok = (outTok) => $('<span class="outtok">').text (outTok || '')
 
 var makeAlignCol = (inTok, outTok) => $('<div class="column">').append (makeInTok (inTok || '-'),
-									makeOutTok (outTok || '-'))
+									makeOutTok (outTok || '-'),
+									$('<div class="annot">'))
 
 var makeMachineSvg = (machine) => {
   var width = stateLabel.width()
@@ -95,14 +102,18 @@ var makeMachineSvg = (machine) => {
   
   var nodes = machine.state.map ((state, n) => ({ id: n,
                                                   value: 1 }))
-  var links = [], gotLink = {}
+  var links = [], gotLink = {}, idToState = {}
+  machine.state.forEach ((state, n) => { idToState[state.id] = n })
   machine.state.forEach ((state, src) => {
     if (state.trans)
       state.trans.forEach ((trans) => {
-        var tag = src + ' ' + trans.to
+	var dest = trans.to
+	if (typeof(dest) === 'string')
+	  dest = idToState[dest]
+        var tag = src + ' ' + dest
         if (!gotLink[tag]) {
           links.push ({ source: src,
-                        target: trans.to,
+                        target: dest,
                         value: 1 })
           gotLink[tag] = true
         }
@@ -205,8 +216,16 @@ var examples = [
     align: 'data/bintern.align.json',
     machine: 'data/bintern.machine.json' },
 
+  { name: 'terndna',
+    align: 'data/terndna.align.json',
+    machine: 'data/terndna.machine.json' },
+
+  { name: 'bindna',
+    align: 'data/bindna.align.json',
+    machine: 'data/bindna.machine.json' },
+
   { name: 'bsc',
     align: 'data/bsc.align.json',
-    machine: 'data/bsc.json' },
+    machine: 'data/bsc.machine.json' },
 		
 ]

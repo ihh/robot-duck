@@ -95,8 +95,14 @@ body {
     font-size: large;
 }
 
-.ins, .del, .sub {
-    margin-top: +1px;
+.annot {
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.ins .annot, .del .annot, .sub .annot {
+    background: black;
 }
 
 .input {
@@ -135,7 +141,7 @@ body {
 
 /* circus theme */
 .circus-theme .machine {
-    box-shadow: 4px 4px 2px #603140;
+    box-shadow: 4px 4px 2px #044;
 }
 .circus-theme .inside {
     background-color: #095256;
@@ -147,12 +153,12 @@ body {
     fill: #603140;
 }
 .circus-theme .outseq {
+    color: white;
     background-color: #087f8c;
-    box-shadow: 2px 2px 1px #7ea172;
+    box-shadow: 2px 2px 1px #044;
 }
 .circus-theme .inseq {
-    background-color: #bb9f06;
+    background-color: #c7cb85;
     border-color: black black black #603140;
-    box-shadow: 2px 2px 1px #603140;
+    box-shadow: 2px 2px 1px #664;
 }
-
