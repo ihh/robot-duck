@@ -95,6 +95,10 @@ body {
     font-size: large;
 }
 
+.ins, .del, .sub {
+    margin-top: +1px;
+}
+
 .input {
     font-size: xx-small;
 }

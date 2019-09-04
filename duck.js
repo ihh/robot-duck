@@ -69,8 +69,16 @@ var nextTrans = () => {
       inputTape.children().first().remove()
     if (trans.out)
       outputTape.append (makeOutTok (trans.out))
-    if (trans.in || trans.out)
-      alignTape.append (makeAlignCol (trans.in, trans.out))
+    if (trans.in || trans.out) {
+      var col = makeAlignCol (trans.in, trans.out)
+      if (trans.in && trans.out && trans.in !== trans.out)
+	col.addClass ('sub')
+      if (trans.in && !trans.out)
+	col.addClass ('del')
+      if (!trans.in && trans.out)
+	col.addClass ('ins')
+      alignTape.append (col)
+    }
     timer = window.setTimeout (nextTrans, trans.in || trans.out ? loudDelay : silentDelay)
   }
 }
