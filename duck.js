@@ -21,7 +21,7 @@ window.onload = () => {
                         $('<select>')
                         .append (themes.map ((t) => $('<option>').attr('value',t).text(t)))
                         .change ((event) => setTheme (event.target.value))),
-               $('<a href="https://github.com/ihh/right-fishy">').text('Source'))
+               $('<a href="https://github.com/ihh/robot-duck">').text('Source'))
 
   setTheme (themes[0])
   selectExample ('protein')

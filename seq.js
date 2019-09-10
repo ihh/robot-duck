@@ -36,7 +36,9 @@ window.onload = () => {
   })
   paramContainer.append ($('<div>')
                          .append ($('<button>').text('Chain').click(()=>fork(false)),
-                                  $('<button>').text('Fork').click(()=>fork(true))))
+                                  $('<button>').text('Fork').click(()=>fork(true))),
+                         $('<div>')
+                         .append ($('<a href="https://github.com/ihh/robot-duck">').text('Source')))
   evolveAll()
 }
 
