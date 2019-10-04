@@ -1,5 +1,6 @@
 var rand = Math.random
 
+/*
 var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'delRate', value: .01, label: 'Deletion rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
@@ -8,6 +9,18 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'maxLen', value: 20, label: 'Max sequence length' },
                   { name: 'hueRange', value: .05, label: 'Hue change/sub' },
                   { name: 'clockRate', value: 1, label: 'Events/site per sec' },
+                  { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
+                ]
+*/
+
+var paramList = [ { name: 'subRate', value: 0, label: 'Substitution rate' },
+                  { name: 'delRate', value: 1, label: 'Deletion rate' },
+                  { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
+                  { name: 'delLen', value: 4, label: 'Mean deletion length' },
+                  { name: 'minLen', value: 0, label: 'Min sequence length' },
+                  { name: 'maxLen', value: 0, label: 'Max sequence length' },
+                  { name: 'hueRange', value: .05, label: 'Hue change/sub' },
+                  { name: 'clockRate', value: 100, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
                 ]
 var params = {}
@@ -29,6 +42,7 @@ window.onload = () => {
       param.value = parseFloat (param.input.val())
       if (param.update)
         param.update()
+      resetStats()
       evolveAll()
     };
     param.input.keyup (updateValue)
@@ -143,10 +157,7 @@ var setRandomColor = (div, hueRange) => {
 }
 
 var geomLen = (pExtend) => {
-  var len = 1
-  while (rand() < pExtend)
-    ++len
-  return len
+  return Math.ceil (Math.log (rand()) / Math.log (1 - pExtend))
 }
 
 var getResidues = (seq) => seq.children('.residue').not('.deleting')
@@ -160,6 +171,18 @@ var setTimer = (id, func, delay) => {
   timer[id] = window.setTimeout (func, delay)
 }
 
+var totalTime, totalLenTime
+var resetStats = () => {
+  totalTime = totalLenTime = 0
+  console.warn ("Reset length statistics")
+}
+var updateStats = (seqLen, millisecs) => {
+  totalTime += millisecs
+  totalLenTime += seqLen * millisecs
+  console.warn ("At " + (totalTime / 1000).toPrecision(3) + "s, <length>=" + (totalLenTime / totalTime).toPrecision(3))
+}
+resetStats()
+
 var evolve = (seq) => {
   if (!seq.hasClass ('halted')) {
     var id = seq.attr('id')
@@ -169,7 +192,7 @@ var evolve = (seq) => {
     var maxLen = params.maxLen.value || 0
     var subRate = params.subRate.value || 0
     var delRate = params.delRate.value || 0
-    var insDelRatio = 1- 1 / (1 + params.eqmLen.value)  // insDelRatio = P(extend eqm sequence by one res)
+    var insDelRatio = 1 - 1 / (1 + params.eqmLen.value)  // insDelRatio = P(extend eqm sequence by one res)
     var clockRate = params.clockRate.value
     var delExtend = 1 - 1 / params.delLen.value  // At any given site, rate(k-deletion) = delRate * delExtend^{k-1} * (1-delExtend)   for k >= 1
     var insExtend = delExtend * insDelRatio  // rate(k-insertion) = rate(k-deletion) * insDelRatio^k
@@ -180,8 +203,9 @@ var evolve = (seq) => {
     var totalRate = () => totalInsRate + totalDelRate + totalSubRate
     if (clockRate > 0) {
       var millisecs = -1000 * Math.log(rand()) / (totalRate() * clockRate)
+      updateStats (seqLen, millisecs)
       if (seqLen < minLen) {
-        millisecs = 0  // skip boring empty sequence
+        millisezcs = 0  // skip boring empty sequence
         totalDelRate = totalSubRate = 0
       } else if (seqLen > maxLen && maxLen > 0) {
         totalInsRate = totalSubRate = 0
@@ -190,7 +214,6 @@ var evolve = (seq) => {
       (id,
        () => {
          var r = rand() * totalRate()
-         console.log(seqLen,totalInsRate,totalDelRate,r)
          if ((r -= totalInsRate) < 0) {
            // insertion
            var pos = Math.floor (rand() * (seqLen + 1))
@@ -201,7 +224,7 @@ var evolve = (seq) => {
            // deletion
            var pos = Math.floor (rand() * seqLen)
            var len = geomLen (delExtend)
-           if (minLen <= 0 || seqLen - len >= minLen)
+           if (seqLen - len >= Math.max (minLen, 0))
              doDelete (seq, pos, len)
          } else {
            // substitution
