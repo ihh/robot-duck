@@ -17,8 +17,8 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                   { name: 'delRate', value: .01, label: 'Deletion rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
-                  { name: 'minLen', value: 0, label: 'Min sequence length' },
-                  { name: 'maxLen', value: 0, label: 'Max sequence length' },
+                  { name: 'minLen', value: 1, label: 'Min sequence length' },
+                  { name: 'maxLen', value: '', label: 'Max sequence length' },
                   { name: 'hueRange', value: .05, label: 'Hue change/sub' },
                   { name: 'clockRate', value: 1, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
@@ -205,7 +205,7 @@ var evolve = (seq) => {
       var millisecs = -1000 * Math.log(rand()) / (totalRate() * clockRate)
       updateStats (seqLen, millisecs)
       if (seqLen < minLen) {
-        millisezcs = 0  // skip boring empty sequence
+        millisecs = 0  // skip boring empty sequence
         totalDelRate = totalSubRate = 0
       } else if (seqLen > maxLen && maxLen > 0) {
         totalInsRate = totalSubRate = 0
