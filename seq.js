@@ -183,13 +183,14 @@ var evolve = (seq) => {
       if (seqLen < minLen) {
         millisecs = 0  // skip boring empty sequence
         totalDelRate = totalSubRate = 0
-      } else if (seqLen > maxLen) {
+      } else if (seqLen > maxLen && maxLen > 0) {
         totalInsRate = totalSubRate = 0
       }
       setTimer
       (id,
        () => {
          var r = rand() * totalRate()
+         console.log(seqLen,totalInsRate,totalDelRate,r)
          if ((r -= totalInsRate) < 0) {
            // insertion
            var pos = Math.floor (rand() * (seqLen + 1))
