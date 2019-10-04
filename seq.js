@@ -13,14 +13,14 @@ var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
                 ]
 */
 
-var paramList = [ { name: 'subRate', value: 0, label: 'Substitution rate' },
-                  { name: 'delRate', value: 1, label: 'Deletion rate' },
+var paramList = [ { name: 'subRate', value: 1, label: 'Substitution rate' },
+                  { name: 'delRate', value: .01, label: 'Deletion rate' },
                   { name: 'eqmLen', value: 4, label: 'Mean sequence length' },
                   { name: 'delLen', value: 4, label: 'Mean deletion length' },
                   { name: 'minLen', value: 0, label: 'Min sequence length' },
                   { name: 'maxLen', value: 0, label: 'Max sequence length' },
                   { name: 'hueRange', value: .05, label: 'Hue change/sub' },
-                  { name: 'clockRate', value: 100, label: 'Events/site per sec' },
+                  { name: 'clockRate', value: 1, label: 'Events/site per sec' },
                   { name: 'indent', value: 40, label: 'Pixel indent/generation', update: setIndents },
                 ]
 var params = {}
